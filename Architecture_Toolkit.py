@@ -1,5 +1,6 @@
 import tkinter as tk
 from Thumb import *
+from InteractiveView import *
 from MenuBar import *
 
 class MainApplication(tk.Tk):
@@ -11,17 +12,25 @@ class MainApplication(tk.Tk):
 
 		#Frame
 		self.frameThumb = tk.Frame(parent,  height = int(2*self.height/3), width = int(self.width/2))
-		self.frameTopView = tk.Frame(parent, height = int(self.height/3), width = int(self.width/2), bg = 'blue')
+		self.frameInteractiveView = tk.Frame(parent, height = int(self.height/3), width = int(self.width/2))
 		self.frameThumb.pack(fill=tk.BOTH, expand=True)
-		self.frameTopView.pack(fill=tk.BOTH, expand=True)
+		self.frameInteractiveView.pack(fill=tk.BOTH, expand=True)
 
-		#init class
-		self.thumb = Thumb(self.frameThumb)
+		#menu bar
+		self.menu = MenuBar(self)
+		self.parent.config(menu = self.menu.menuBar)
+
+		#interactive view
+		self.interactiveView = InteractiveView(self,self.frameInteractiveView)
+		self.interactiveView.canvas.grid(row=0, column=0, sticky="nsew")
+		self.frameInteractiveView.grid_rowconfigure(0, weight=1)
+		self.frameInteractiveView.grid_columnconfigure(0, weight=1)
+		self.interactiveView.initCenter()
+
+		#thumb
+		self.thumb = Thumb(self.frameThumb,self.interactiveView )
 		self.thumb.thumb.pack(fill = tk.BOTH, expand = True)
 
-		self.menu = MenuBar(self)
-		
-		self.parent.config(menu = self.menu.menuBar)
 
 if __name__ == "__main__":
 	root = tk.Tk()
@@ -32,40 +41,3 @@ if __name__ == "__main__":
 	#root.state('zoomed')
 	root.geometry(f'{int(width/2)}x{height}')
 	root.mainloop()
-
-#from tkinter import *
-
-#class Frame1(Frame):
-#    def __init__(self, parent):
-#        Frame.__init__(self, parent, bg="red")
-#        self.parent = parent
-#        self.widgets()
-
-#    def widgets(self):
-#        self.text = Text(self)
-#        self.text.insert(INSERT, "Hello World\t")
-#        self.text.insert(END, "This is the first frame")
-#        self.text.grid(row=0, column=0, padx=20, pady=20) # margins
-
-
-#class MainW(Tk):
-
-#    def __init__(self, parent):
-#        Tk.__init__(self, parent)
-#        self.parent = parent
-#        self.mainWidgets()
-
-#    def mainWidgets(self):
-
-#        self.label1 = Label(self, text="Main window label", bg="green")
-#        self.label1.grid(row=0, column=0)
-
-#        self.label2 = Label(self, text="Main window label", bg="yellow")
-#        self.label2.grid(row=1, column=0)
-
-#        self.window = Frame1(self)
-#        self.window.grid(row=0, column=10, rowspan=2)
-
-#if __name__=="__main__":
-#    app = MainW(None)
-#    app.mainloop()

@@ -21,11 +21,23 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="InteractiveView.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Architecture_Toolkit.py" />
     <Compile Include="MenuBar.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Selectable.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Thumb.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ThumbRoom.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Wall.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
