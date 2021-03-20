@@ -37,6 +37,9 @@
     <Compile Include="ThumbRoom.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Utils.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Wall.py">
       <SubType>Code</SubType>
     </Compile>

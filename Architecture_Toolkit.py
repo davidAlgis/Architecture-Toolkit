@@ -25,7 +25,6 @@ class MainApplication(tk.Tk):
 		self.interactiveView.canvas.grid(row=0, column=0, sticky="nsew")
 		self.frameInteractiveView.grid_rowconfigure(0, weight=1)
 		self.frameInteractiveView.grid_columnconfigure(0, weight=1)
-		self.interactiveView.initCenter()
 
 		#thumb
 		self.thumb = Thumb(self.frameThumb,self.interactiveView )

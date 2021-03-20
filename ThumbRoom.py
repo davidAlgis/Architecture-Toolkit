@@ -10,5 +10,5 @@ class ThumbRoom(tk.Frame):
         self.interactiveView = interactiveView
     
     def addRoom(self):
-        self.interactiveView.bindWallOrigin()#.canvas.bind("<ButtonPress-1>", ))
-        self.interactiveView.addMessage("Add the origin of the wall by clicking on the view above")
+        self.interactiveView.bindWallOrigin()
+        self.interactiveView.addMessage("Add the origin of the wall by left clicking on the view below, middle click to cancel. ", True)
