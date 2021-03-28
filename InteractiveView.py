@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from Wall import *
+from Utils import * 
 import numpy as np
 import Selectable
 
@@ -36,7 +37,6 @@ class InteractiveView(tk.Frame):
         self.listSelectable = [Selectable]
         self.currentDirectionForWall = np.array([0,1])
         
-
 
     #------Scroll and zoom part-----#
     def scroll_start(self, event):
@@ -90,6 +90,8 @@ class InteractiveView(tk.Frame):
             x = -self.sizeCanvas + j*sizeGrid
             self.canvas.create_line(x,-self.sizeCanvas,x,self.sizeCanvas, fill="#ff0000", dash=(5,))
 
+    def test(self):
+        print("i")
     #------Wall part-----#
     def bindWallOrigin(self):
         self.canvas.bind("<ButtonPress-1>", self.beginWall)
@@ -159,7 +161,7 @@ class InteractiveView(tk.Frame):
         self.currentWallEdit.updatePolygon()
 
         if(self.magnetToAnotherWall):
-            self.stopAddWall()
+            self.stopAddWall(event)
         else:
             self.beginWallAddPoint(end)
 
@@ -167,30 +169,46 @@ class InteractiveView(tk.Frame):
        
         self.defaultMessage()'''
 
-    def stopAddWall(self):
+
+    def stopAddWall(self,event):
         print("stop add wall")
         self.parent.after(100, self.defaultBind)
         self.defaultMessage()
 
     def defaultBind(self):
         # This is what enables scrolling with the mouse:
-        self.canvas.bind("<ButtonPress-3>", self.scroll_start)
-        self.canvas.bind("<B3-Motion>", self.scroll_move)
-        self.canvas.bind("<ButtonRelease-3>", self.scroll_end)
+        #self.canvas.bind("<ButtonPress-3>", self.scroll_start)
+        #self.canvas.bind("<B3-Motion>", self.scroll_move)
+        #self.canvas.bind("<ButtonRelease-3>", self.scroll_end)
         self.canvas.bind("<ButtonPress-1>", self.click)
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<Motion>")
         #self.canvas.bind("<ButtonPress-2>", self.scroll_move)
         #self.canvas.bind("<B2-Motion>", self.scroll_move)
-        self.canvas.bind("<MouseWheel>",self.zoomer)
+        #self.canvas.bind("<MouseWheel>",self.zoomer)
 
     def defaultMessage(self):
         self.addMessage("")
 
     #-----Selection part-----#
     def click(self, event):
+        utils = Utils()
+        point = np.array([event.x, event.y])
+
+
+        currentSelectable = None
+        currentPolygonArea = 0
         for selectable in self.listSelectable:
             if(type(selectable) == Wall):
                 selectable.__class__ = Wall
-                selectable.polygon
+                polygon = selectable.polygon
+
+                if(utils.isInsidePolygon(point, polygon) == True):
+                    area = Utils.polygonArea(polygon)
+                    if(area < currentPolygonArea or currentPolygonArea == 0):
+                        currentSelectable = selectable
+                        currentPolygonArea = area
+        if(currentSelectable != None):
+            polygon = currentSelectable.polygon
+            self.canvas.create_line(polygon[0,0],polygon[1,0],polygon[0,1],polygon[1,1],polygon[0,2],polygon[1,2],polygon[0,3],polygon[1,3],polygon[0,0],polygon[1,0],width =3, fill='red')
