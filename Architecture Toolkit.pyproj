@@ -28,6 +28,9 @@
     <Compile Include="MenuBar.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="initBlenderScript.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Selectable.py">
       <SubType>Code</SubType>
     </Compile>
@@ -35,6 +38,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ThumbRoom.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ToBlender.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utils.py">

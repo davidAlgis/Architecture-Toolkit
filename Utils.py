@@ -15,7 +15,6 @@ class Utils:
                 nbrIntersection+=1
 
         if(nbrIntersection%2 ==1):
-            print(nbrIntersection, "is inside")
             return True
         else:
             return False
@@ -60,10 +59,8 @@ class Utils:
     
         if(A1B1Vertical==True and A2B2Vertical==True):
             if(A1[0]!=A2[0] or B1[0]!=B2[0]):
-                print("pas d'intersection")
                 return NoneA;
             else:
-                print("Il y a une infinité d'intersection")
                 return NoneA;
 
         b1=B1[1]-a1*B1[0]
@@ -90,7 +87,14 @@ class Utils:
             return intersection
         else:
             return NoneA
-
+    
+    def normalized(vec):
+        norm = np.linalg.norm(vec)
+        if(norm != 0):
+            return vec/norm
+        else:
+            print("Warning try to normalized the zero vector")
+            return vec
 
     #return true if C is in [OM]
     @staticmethod

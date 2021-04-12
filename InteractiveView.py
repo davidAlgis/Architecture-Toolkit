@@ -4,9 +4,11 @@ from Wall import *
 from Utils import * 
 import numpy as np
 import Selectable
+from enum import Enum
 
 class InteractiveView(tk.Frame):
-    currentWallEdit: Wall
+    currentWallEdit : Wall
+    
 
     def __init__(self,parent, frame):
         self.canvas = tk.Canvas(frame)
@@ -22,8 +24,8 @@ class InteractiveView(tk.Frame):
         self.canvas.configure(yscrollcommand=self.ysb.set, xscrollcommand=self.xsb.set)
         self.sizeCanvas = 50000
         self.canvas.configure(scrollregion=(-self.sizeCanvas,-self.sizeCanvas,self.sizeCanvas,self.sizeCanvas))
-        self.xsb.grid(row=1, column=0, sticky="ew")
-        self.ysb.grid(row=0, column=1, sticky="ns")
+        #self.xsb.grid(row=1, column=0, sticky="ew")
+        #self.ysb.grid(row=0, column=1, sticky="ns")
         self.offsetXPrev = 0
         self.offsetYPrev = 0
         self.offsetXNew = 0
@@ -33,8 +35,11 @@ class InteractiveView(tk.Frame):
 
         self.initGrid()
         self.defaultBind()
-
+        self.magnetToAnotherWall = False
         self.listSelectable = [Selectable]
+        #list of the id of contour of the current selection
+        self.listContourSelectionID = [int]
+        self.listCurrentSelection = []
         self.currentDirectionForWall = np.array([0,1])
         
 
@@ -100,7 +105,7 @@ class InteractiveView(tk.Frame):
 
     def beginWall(self, event):
         point = np.array([event.x + self.offsetXNew, event.y+ self.offsetYNew])
-        point = self.magnet(point)
+        point = self.magnet(point, StatusWall.Begin)
         self.magnetToAnotherWall = False
         self.beginWallAddPoint(point)
 
@@ -112,51 +117,57 @@ class InteractiveView(tk.Frame):
         self.canvas.bind("<Motion>", self.moveBeginWall)
         self.canvas.bind("<ButtonPress-1>", self.endWall)
 
-    def magnet(self, point, end=False):
+    def magnet(self, point, status):
         for selectable in self.listSelectable:
             if(type(selectable) == Wall):
                 selectable.__class__ = Wall
                 if(np.linalg.norm(point - selectable.origin) < 25):
-                    if(end):
+                    if(status == StatusWall.End):
                         self.magnetToAnotherWall = True
                     return selectable.origin
                 if(np.linalg.norm(point - selectable.end) < 25):
-                    if(end):
+                    if(status == StatusWall.End):
                         self.magnetToAnotherWall = True
                     return selectable.end
+        if(self.magnetToAnotherWall == False and (status == StatusWall.Moving or status == StatusWall.End)):
+            vecCurrentWall = point - self.currentWallEdit.origin
+            vecCurrentWallNormalized = Utils.normalized(vecCurrentWall)
+
+            if(np.abs(np.arccos(vecCurrentWallNormalized[0])) < 0.1):
+                return self.currentWallEdit.origin + np.linalg.norm(vecCurrentWall)*np.array([1,0])
+            if(np.abs(np.arccos(vecCurrentWallNormalized[1])) < 0.1):
+                return self.currentWallEdit.origin + np.linalg.norm(vecCurrentWall)*np.array([0,1])
+            if(np.abs(np.arccos(-vecCurrentWallNormalized[0])) < 0.1):
+                return self.currentWallEdit.origin - np.linalg.norm(vecCurrentWall)*np.array([1,0])
+            if(np.abs(np.arccos(-vecCurrentWallNormalized[1])) < 0.1):
+                return self.currentWallEdit.origin - np.linalg.norm(vecCurrentWall)*np.array([0,1])
+
         return point
 
     def moveBeginWall(self, event):
         end = np.array([event.x + self.offsetXNew, event.y+ self.offsetYNew])
-        end = self.magnet(end)
+        end = self.magnet(end, StatusWall.Moving)
         self.canvas_id = self.canvas.create_line(self.currentWallEdit.origin[0],self.currentWallEdit.origin[1], end[0], end[1])
         self.canvas.after(10, self.canvas.delete, self.canvas_id)
 
     def endWall(self, event):
         end = np.array([event.x + self.offsetXNew, event.y+ self.offsetYNew])
-        end = self.magnet(end, True)
+        end = self.magnet(end, StatusWall.End)
         length = np.linalg.norm(end - self.currentWallEdit.origin)
 
         vectorOriginBasis = self.currentWallEdit.origin + self.currentDirectionForWall
 
-        if(np.linalg.norm(vectorOriginBasis) != 0):
-            vectorOriginBasis[0]/=(int)(np.linalg.norm(vectorOriginBasis))
-            vectorOriginBasis[1]/=(int)(np.linalg.norm(vectorOriginBasis))
-        else:
-            print("error divide 0")
-
+        vectorOriginBasis = Utils.normalized(vectorOriginBasis)
         vectorWall = end - self.currentWallEdit.origin
-        if(np.linalg.norm(vectorWall) != 0):
-            vectorWall[0]/=(int)(np.linalg.norm(vectorWall))
-            vectorWall[1]/=(int)(np.linalg.norm(vectorWall))
-        else:
-            print("error divide 0 1")
+        vectorWall = Utils.normalized(vectorWall)
+
         
         angle = np.arccos(np.vdot(vectorOriginBasis, vectorWall))
         self.currentWallEdit.length = length
         
         self.currentWallEdit.end = end
-        self.canvas.create_line(self.currentWallEdit.origin[0],self.currentWallEdit.origin[1], end[0], end[1], width = self.currentWallEdit.width)
+        id = self.canvas.create_line(self.currentWallEdit.origin[0],self.currentWallEdit.origin[1], end[0], end[1], width = self.currentWallEdit.width)
+        self.currentWallEdit.canvasID = id
         self.listSelectable.append(self.currentWallEdit)
         self.currentWallEdit.updatePolygon()
 
@@ -165,21 +176,16 @@ class InteractiveView(tk.Frame):
         else:
             self.beginWallAddPoint(end)
 
-        '''self.parent.after(100, self.defaultBind)
-       
-        self.defaultMessage()'''
-
 
     def stopAddWall(self,event):
-        print("stop add wall")
         self.parent.after(100, self.defaultBind)
         self.defaultMessage()
 
     def defaultBind(self):
         # This is what enables scrolling with the mouse:
-        #self.canvas.bind("<ButtonPress-3>", self.scroll_start)
-        #self.canvas.bind("<B3-Motion>", self.scroll_move)
-        #self.canvas.bind("<ButtonRelease-3>", self.scroll_end)
+        self.canvas.bind("<ButtonPress-3>", self.scroll_start)
+        self.canvas.bind("<B3-Motion>", self.scroll_move)
+        self.canvas.bind("<ButtonRelease-3>", self.scroll_end)
         self.canvas.bind("<ButtonPress-1>", self.click)
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<ButtonRelease-1>")
@@ -193,7 +199,7 @@ class InteractiveView(tk.Frame):
 
     #-----Selection part-----#
     def click(self, event):
-        utils = Utils()
+        
         point = np.array([event.x, event.y])
 
 
@@ -204,11 +210,26 @@ class InteractiveView(tk.Frame):
                 selectable.__class__ = Wall
                 polygon = selectable.polygon
 
-                if(utils.isInsidePolygon(point, polygon) == True):
+                if(Utils.isInsidePolygon(point, polygon) == True):
                     area = Utils.polygonArea(polygon)
                     if(area < currentPolygonArea or currentPolygonArea == 0):
                         currentSelectable = selectable
                         currentPolygonArea = area
         if(currentSelectable != None):
             polygon = currentSelectable.polygon
-            self.canvas.create_line(polygon[0,0],polygon[1,0],polygon[0,1],polygon[1,1],polygon[0,2],polygon[1,2],polygon[0,3],polygon[1,3],polygon[0,0],polygon[1,0],width =3, fill='red')
+            self.listContourSelectionID.clear()
+            id = self.canvas.create_line(polygon[0,0],polygon[1,0],polygon[0,1],polygon[1,1],polygon[0,2],polygon[1,2],polygon[0,3],polygon[1,3],polygon[0,0],polygon[1,0],width =3, fill='red')
+            self.listContourSelectionID.append(id)
+            
+            self.listCurrentSelection.clear()
+            self.listCurrentSelection.append(currentSelectable)
+
+        else:
+            self.listCurrentSelection.clear()
+
+
+
+class StatusWall(Enum):
+    Begin = 1
+    Moving = 2
+    End = 3

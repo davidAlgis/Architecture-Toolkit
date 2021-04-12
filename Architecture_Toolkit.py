@@ -2,14 +2,18 @@ import tkinter as tk
 from Thumb import *
 from InteractiveView import *
 from MenuBar import *
+from win32api import GetMonitorInfo, MonitorFromPoint
+import subprocess
 
 class MainApplication(tk.Tk):
 	def __init__(self, parent):
 		tk.Frame.__init__(self, parent)
 		self.parent = parent
-		self.width  = root.winfo_screenwidth()
-		self.height = root.winfo_screenheight()
-
+		monitor_info = GetMonitorInfo(MonitorFromPoint((0,0)))
+		work_area = monitor_info.get("Work")
+		self.width =  root.winfo_screenwidth()
+		self.height =  root.winfo_screenheight()
+		self.parent.geometry("%dx%d+0+0" % (self.width/2, self.height-95))
 		#Frame
 		self.frameThumb = tk.Frame(parent,  height = int(2*self.height/3), width = int(self.width/2))
 		self.frameInteractiveView = tk.Frame(parent, height = int(self.height/3), width = int(self.width/2))
@@ -29,14 +33,30 @@ class MainApplication(tk.Tk):
 		#thumb
 		self.thumb = Thumb(self.frameThumb,self.interactiveView )
 		self.thumb.thumb.pack(fill = tk.BOTH, expand = True)
+		
+		#init blender
+		self.initBlender()
 
+	def initBlender(self):
+		listArg = [self.menu.defaultPathBlender] 
+		#use blender arguments to initialize it
+		#https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html
+		#open a script when blender is open
+		listArg.append('-P')
+		listArg.append('initBlenderScript.py')
+		#Set the position and the size of the windows
+		listArg.append('--window-geometry')
+
+		#TODO: change this to have more generally settings 
+		listArg.append('960') #position x
+		listArg.append('0') #position y
+		listArg.append('960') #size x
+		listArg.append('1080') #size y
+		
+		subprocess.Popen(listArg)
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	main = MainApplication(root)#.pack(side="top", fill = "both", expand = True)
-	width  = root.winfo_screenwidth()
-	height = root.winfo_screenheight()
+	main = MainApplication(root)
 	
-	#root.state('zoomed')
-	root.geometry(f'{int(width/2)}x{height}')
 	root.mainloop()

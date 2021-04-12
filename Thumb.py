@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from ThumbRoom import *
+from ThumbBoolean import *
 
 class Thumb(tk.Frame):
     def __init__(self, frame, interactiveView:InteractiveView):
@@ -16,6 +17,7 @@ class Thumb(tk.Frame):
         self.thumbBoolean = ttk.Frame(self.thumb)
         self.thumbBoolean.pack()
         self.thumb.add(self.thumbBoolean, text='Boolean')  
+        ThumbBoolean(self.thumbBoolean, interactiveView)
 
         self.thumbStairs = ttk.Frame(self.thumb)
         self.thumbStairs.pack()

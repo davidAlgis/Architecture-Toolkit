@@ -1,5 +1,6 @@
 from Selectable import *
 import numpy as np
+from Utils import * 
 
 class Wall(Selectable):
     def __init__(self, origin:np.array(2, dtype=int), width = 15, length = 100, angle = 0):
@@ -8,6 +9,8 @@ class Wall(Selectable):
         self.length = length
         self.angle = angle
         self.end = origin
+
+
         Selectable.__init__(self)
         
 
@@ -16,13 +19,13 @@ class Wall(Selectable):
         if((self.end == self.origin).all()):
             print("error - origin and end are the same")
         basis = np.zeros((2,2))
-        print((self.end - self.origin).shape)
-        print(basis.shape)
+
         basis[:,0] = self.end - self.origin
         
-        norm = np.linalg.norm(basis[0,:])
-        basis[0,0] = basis[0,0]/norm
-        basis[1,0] = basis[1,0]/norm
+        basis = Utils.normalized(basis)
+        #norm = np.linalg.norm(basis[0,:])
+        #basis[0,0] = basis[0,0]/norm
+        #basis[1,0] = basis[1,0]/norm
 
         basis[0,1] = basis[1,0] * self.width/2
         basis[1,1] = -basis[0,0]* self.width/2
