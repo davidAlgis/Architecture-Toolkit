@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 from Wall import *
+from Room import *
 from Utils import * 
 import numpy as np
-import Selectable
+from Selectable import *
 from enum import Enum
 
 class InteractiveView(tk.Frame):
@@ -36,9 +37,11 @@ class InteractiveView(tk.Frame):
         self.initGrid()
         self.defaultBind()
         self.magnetToAnotherWall = False
-        self.listSelectable = [Selectable]
+        #TODO : ensure there are only selectable in this list :
+        self.listSelectable = [] 
         #list of the id of contour of the current selection
-        self.listContourSelectionID = [int]
+        #TODO : ensure there are only selectable in this list :
+        self.listContourSelectionID = []
         self.listCurrentSelection = []
         self.currentDirectionForWall = np.array([0,1])
         
@@ -109,8 +112,11 @@ class InteractiveView(tk.Frame):
         self.magnetToAnotherWall = False
         self.beginWallAddPoint(point)
 
-    def beginWallAddPoint(self, point):
+    def beginWallAddPoint(self, point, wall = None):
         self.currentWallEdit = Wall(point)
+        if(wall != None):
+            wall.connectToEnd.append(self.currentWallEdit)
+            self.currentWallEdit.connectToOrigin.append(wall)
         self.bindWallMoveEnd()
 
     def bindWallMoveEnd(self):
@@ -124,10 +130,21 @@ class InteractiveView(tk.Frame):
                 if(np.linalg.norm(point - selectable.origin) < 25):
                     if(status == StatusWall.End):
                         self.magnetToAnotherWall = True
+                        selectable.connectToOrigin.append(self.currentWallEdit)
+                        self.currentWallEdit.connectToEnd.append(selectable)
+                    #add connection
+                    elif status == StatusWall.Begin:
+                        selectable.connectToOrigin.append(self.currentWallEdit)
+                        self.currentWallEdit.connectToOrigin.append(selectable)
                     return selectable.origin
                 if(np.linalg.norm(point - selectable.end) < 25):
                     if(status == StatusWall.End):
                         self.magnetToAnotherWall = True
+                        selectable.connectToEnd.append(self.currentWallEdit)
+                        self.currentWallEdit.connectToEnd.append(selectable)
+                    elif status == StatusWall.Begin:
+                        selectable.connectToEnd.append(self.currentWallEdit)
+                        self.currentWallEdit.connectToOrigin.append(selectable)
                     return selectable.end
         if(self.magnetToAnotherWall == False and (status == StatusWall.Moving or status == StatusWall.End)):
             vecCurrentWall = point - self.currentWallEdit.origin
@@ -173,8 +190,10 @@ class InteractiveView(tk.Frame):
 
         if(self.magnetToAnotherWall):
             self.stopAddWall(event)
+            self.listSelectable.append(Room.createRoomFromWalls(self.currentWallEdit))
         else:
-            self.beginWallAddPoint(end)
+            self.beginWallAddPoint(end, self.currentWallEdit)
+
 
 
     def stopAddWall(self,event):
@@ -206,15 +225,16 @@ class InteractiveView(tk.Frame):
         currentSelectable = None
         currentPolygonArea = 0
         for selectable in self.listSelectable:
-            if(type(selectable) == Wall):
-                selectable.__class__ = Wall
-                polygon = selectable.polygon
-
-                if(Utils.isInsidePolygon(point, polygon) == True):
-                    area = Utils.polygonArea(polygon)
-                    if(area < currentPolygonArea or currentPolygonArea == 0):
-                        currentSelectable = selectable
-                        currentPolygonArea = area
+            if(isinstance(selectable,Selectable) == False):
+               continue
+            polygon = selectable.polygon
+            print(selectable.ID, polygon)
+                
+            if(Utils.isInsidePolygon(point, polygon) == True):
+                area = Utils.polygonArea(polygon)
+                if(area < currentPolygonArea or currentPolygonArea == 0):
+                    currentSelectable = selectable
+                    currentPolygonArea = area
         if(currentSelectable != None):
             polygon = currentSelectable.polygon
             self.listContourSelectionID.clear()

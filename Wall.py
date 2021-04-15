@@ -2,17 +2,23 @@ from Selectable import *
 import numpy as np
 from Utils import * 
 
+nbrWall = 0 
+
 class Wall(Selectable):
+    
     def __init__(self, origin:np.array(2, dtype=int), width = 15, length = 100, angle = 0):
+        global nbrWall
         self.origin = origin
         self.width = width
         self.length = length
         self.angle = angle
         self.end = origin
-
-
-        Selectable.__init__(self)
+        self.connectToOrigin = []
+        self.connectToEnd = []
         
+        Selectable.__init__(self)
+        self.ID = "Wall_" + str(nbrWall)
+        nbrWall += 1 
 
     def updatePolygon(self):
         self.polygon = np.zeros((2,5))

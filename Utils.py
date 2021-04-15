@@ -114,3 +114,4 @@ class Utils:
     @staticmethod
     def create_point(canvas:tk.Canvas,x,y,size, color):
         canvas.create_oval(x-size, y-size, x+size, y+size,fill=color)
+

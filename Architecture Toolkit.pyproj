@@ -31,6 +31,9 @@
     <Compile Include="initBlenderScript.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Room.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Selectable.py">
       <SubType>Code</SubType>
     </Compile>
