@@ -45,6 +45,7 @@ class InteractiveView(tk.Frame):
         self.listCurrentSelection = []
         self.currentDirectionForWall = np.array([0,1])
         
+        
 
     #------Scroll and zoom part-----#
     def scroll_start(self, event):
@@ -189,11 +190,22 @@ class InteractiveView(tk.Frame):
         self.currentWallEdit.updatePolygon()
 
         if(self.magnetToAnotherWall):
+            #self.updateWedgeAllWalls()
+            
             self.stopAddWall(event)
-            self.listSelectable.append(Room.createRoomFromWalls(self.currentWallEdit))
+            
+            #todo don't add room each time
+            #self.listSelectable.append(Room.createRoomFromWalls(self.currentWallEdit))
+            
         else:
             self.beginWallAddPoint(end, self.currentWallEdit)
 
+    def updateWedgeAllWalls(self):
+         for selectable in self.listSelectable:
+            if(type(selectable) == Wall):
+                selectable.__class__ = Wall
+                selectable.updateWedge(selectable.connectToOrigin, True)
+                selectable.updateWedge(selectable.connectToEnd, False)
 
 
     def stopAddWall(self,event):
@@ -228,7 +240,7 @@ class InteractiveView(tk.Frame):
             if(isinstance(selectable,Selectable) == False):
                continue
             polygon = selectable.polygon
-            print(selectable.ID, polygon)
+            #print(selectable.ID, polygon)
                 
             if(Utils.isInsidePolygon(point, polygon) == True):
                 area = Utils.polygonArea(polygon)
